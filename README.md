@@ -1,66 +1,44 @@
 # Anime Dice
 
 Obsidian-UI script for the Roblox game **Anime Dice**. Fires the game's own
-`RollService` / `SellService` remotes — no hidden payloads, no third-party
-hub loader.
+remotes — mapped from `ReplicatedStorage.Network` with the recon tools in
+[`tools/`](tools). No hidden payloads, no third-party hub loader.
+
+## Loadstring
+
+```lua
+loadstring(game:HttpGet("https://raw.githubusercontent.com/dylankirkgirg/anime-dice/main/loader.lua"))()
+```
+
+Drop it in Opiumware's autoexec folder to run on join. (raw CDN caches ~5 min;
+paste `src/main.lua` raw for instant iteration.)
 
 ## Tabs
 
-**Main**
-- **Fast Roll** + delay slider — loops `RollDice` as fast as the server answers (0 = max).
-- **Auto Sell (native)** — flips `UpdateAutoSell` so inventory doesn't cap out.
-- **Sell Inventory / Sell Equipped** — one-shot sell buttons.
+- **Farm** — Auto Roll (+delay), Auto Collect Money (+plot id), Auto Rebirth, Auto Spin, Auto Claim Quest / Claim All, Redeem Code · Equip: Auto Equip Best, Auto Equip Best Dice
+- **Units** — Auto Grade (unit + keep-grades), Auto Trait (unit + keep-traits), Auto Lock (by rarity), Sell Inventory / Sell When Full, Auto Upgrade placed units. Reads your live inventory; **Refresh Unit List** rescans.
+- **Tower** — Auto Tower, mode, map rotation, runs per map, stop-at-floor, auto equip best team
+- **Shop** — Auto Use Potions (multi-select), Auto Buy Dice. (Auto-buy upgrades deferred — remote not captured.)
+- **Trade** — request by username, auto-accept, requests-enabled toggle. (Auto-offer/confirm deferred — needs a captured trade.)
+- **Webhook** — Unit webhook (new rolls, rarity-filtered → Discord) + Inventory webhook. Needs executor `http_request`.
+- **Player** — WalkSpeed, Infinite Jump, NoClip, Instant ProximityPrompt, Fly, FPS Boost, GPU Saver, Anti-AFK
+- **Settings** — config save/load/**autoload** (SaveManager) + theme (ThemeManager)
 
-**Farm**
-- **Auto Spin** · **Auto Claim Rewards** (Daily/Group/Offline/Quest) · **Auto Rebirth**.
-- **Collect Balance** · **Equip Best** buttons.
-- **Redeem Code** input + button.
+**RightShift** or the on-screen button toggles the UI. Native cursor (no crosshair).
 
-**Player**
-- **Movement** — WalkSpeed toggle + amount slider, Infinite Jump, NoClip, Instant ProximityPrompt.
-- **Fly** — toggle + speed slider. WASD + Space/Shift, camera-relative.
-- **Performance** — FPS Boost (low quality, no shadows, no particles, flat water) · GPU Saver (disable 3D rendering — big GPU/battery win, UI stays) · Anti-AFK (blocks the 20-min idle kick). All reversible.
-- **Configs** — save / load / **autoload** your settings (Obsidian SaveManager).
-- **Themes** — Obsidian ThemeManager picker.
+## Data sources (ground truth)
 
-**RightShift** — show/hide the UI.
+| What              | From                                             |
+|-------------------|--------------------------------------------------|
+| Remote paths      | `tools/dump.lua` → `reference/AnimeDice_dump.txt` |
+| Remote args       | `tools/argspy.lua` (namecall hook)               |
+| Dropdown lists    | `tools/values.lua`                               |
+| Inventory shape   | `tools/inv.lua` → `Client.data.___X.Inventory`   |
 
-## Auto-execute
+Unit rarity isn't stored per-unit — it's mapped from `UnitConfig.entries[name]`
+at runtime.
 
-Two layers:
+## Inferred / deferred
 
-1. **Settings** — set a config as *autoload* in the UI tab. On every inject, saved
-   toggles (Auto Roll, Auto Sell, FPS Boost, Anti-AFK) re-fire automatically.
-2. **On launch** — drop `loader.lua`'s loadstring into Opiumware's **autoexec**
-   folder so the script runs itself the moment you join, no manual inject.
-
-Toggles also re-apply after a respawn.
-
-## Setup
-
-1. Create a GitHub repo named `anime-dice`, push these files (keep the `src/` folder).
-2. Edit [`loader.lua`](loader.lua): set `GITHUB_USER` to your GitHub username.
-3. Inject (or drop in autoexec):
-
-```lua
-loadstring(game:HttpGet("https://raw.githubusercontent.com/YOUR_GITHUB_USERNAME/anime-dice/main/loader.lua"))()
-```
-
-`loader.lua` pulls the latest `src/main.lua` each run — edit, push, re-inject. No re-pasting.
-
-## Notes
-
-- Everything is **server-authoritative**: currency/rolls are decided by the
-  server. This automates the real actions fast; it can't fabricate currency.
-- If **Manual Roll Loop** does nothing, `RollDice` probably wants an argument
-  (dice tier). Spy one real roll and we match the arg.
-
-## Remote map (from `ReplicatedStorage.Network`)
-
-| Purpose      | Remote                              | Type           | Call                |
-|--------------|-------------------------------------|----------------|---------------------|
-| Native auto  | `RollService.RE.SetAutoRoll`        | RemoteEvent    | `FireServer(bool)`  |
-| Roll once    | `RollService.RF.RollDice`           | RemoteFunction | `InvokeServer()`    |
-| Native sell  | `SellService.RE.UpdateAutoSell`     | RemoteEvent    | `FireServer(bool)`  |
-| Sell all     | `SellService.RF.SellInventory`      | RemoteFunction | `InvokeServer()`    |
-| Sell equipped| `SellService.RF.SellEquipped`       | RemoteFunction | `InvokeServer()`    |
+- **Inferred** (fired by analogy, verify on use): `Unequip(uuid)`, `SetGradeProtected/SetTraitProtected({[uuid]=bool})`, `BuyDice(name)`, `SpinUse("Lucky Spin")`.
+- **Deferred** (need capture): trade offer/confirm (`ChangeOffer`/`AdvanceTrade`), auto-buy upgrades remote.
