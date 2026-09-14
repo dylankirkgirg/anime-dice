@@ -72,13 +72,31 @@ local DataClient, UnitConfig
 pcall(function() DataClient = require(RS.Packages.Data.Client) end)
 pcall(function() UnitConfig = require(RS.Framework.Features.Inventory.Kinds.Unit.UnitConfig) end)
 
--- inventory = { uuid = { name, attributes = {mutation,locked,level,grade,trait}, amount } }
-local function getInventory()
-	local ok, root = pcall(function() return DataClient.data.___X end)
-	if ok and type(root) == "table" and type(root.Inventory) == "table" then
-		return root.Inventory
+-- collect every unit-shaped entry (uuid -> {name, attributes{...}}) anywhere in
+-- the player data — covers Inventory AND equipped/placed units on the plot.
+local function collectUnits(dst, tbl, depth)
+	if type(tbl) ~= "table" or depth > 4 then return end
+	for k, v in pairs(tbl) do
+		if type(v) == "table" then
+			if type(k) == "string" and v.name and v.attributes
+			   and (v.attributes.grade or v.attributes.trait) then
+				dst[k] = v -- k is the uuid
+			else
+				collectUnits(dst, v, depth + 1)
+			end
+		end
 	end
-	return {}
+end
+-- cached ~1s so the deep scan doesn't run every loop tick
+local invCache, invCacheT = {}, 0
+local function getInventory()
+	local now = os.clock()
+	if now - invCacheT < 1 then return invCache end
+	local units = {}
+	local ok, root = pcall(function() return DataClient.data.___X end)
+	if ok and type(root) == "table" then collectUnits(units, root, 0) end
+	invCache, invCacheT = units, now
+	return units
 end
 
 -- rarity of a unit name via UnitConfig.entries[name]
