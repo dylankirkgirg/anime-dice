@@ -5,7 +5,7 @@
 --
 -- SETUP: change GITHUB_USER below to your GitHub username.
 
-local GITHUB_USER = "YOUR_GITHUB_USERNAME"
+local GITHUB_USER = "dylankirkgirg"
 local REPO        = "anime-dice"
 local BRANCH      = "main"
 
