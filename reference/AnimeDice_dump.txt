@@ -1,0 +1,281 @@
+===== REMOTES (Network) =====
+BuffService.RP.Cache  [RemoteEvent]
+NotificationService.RE.TextNotification  [RemoteEvent]
+NotificationService.RE.DropNotification  [RemoteEvent]
+UnitService.RP.EquippedUnit  [RemoteEvent]
+UnitService.RE.SetLocked  [RemoteEvent]
+UnitService.RF.Equip  [RemoteFunction]
+UnitService.RF.Unequip  [RemoteFunction]
+BoostService.RE.Use  [RemoteEvent]
+SpinService.RE.Use  [RemoteEvent]
+SellService.RE.UpdateAutoSell  [RemoteEvent]
+SellService.RF.SellInventory  [RemoteFunction]
+SellService.RF.SellEquipped  [RemoteFunction]
+LimitedUnitService.RP.Stock  [RemoteEvent]
+DiceShopService.RE.BuyDice  [RemoteEvent]
+DiceShopService.RE.EquipDice  [RemoteEvent]
+PlotService.RP.PlotId  [RemoteEvent]
+PlotService.RE.CollectBalance  [RemoteEvent]
+PlotService.RE.InteractSlot  [RemoteEvent]
+PlotService.RE.LevelUpSlot  [RemoteEvent]
+PlotService.RE.LevelUpSuccess  [RemoteEvent]
+PlotService.RE.EquipBest  [RemoteEvent]
+OnboardingService.RE.Advance  [RemoteEvent]
+TraitService.RE.SetTraitProtected  [RemoteEvent]
+TraitService.RE.Roll  [RemoteEvent]
+RebirthService.RE.Rebirth  [RemoteEvent]
+GradeService.RE.SetGradeProtected  [RemoteEvent]
+GradeService.RE.Roll  [RemoteEvent]
+GroupRewardService.RE.Claim  [RemoteEvent]
+OfflineEarningsService.RE.Claim  [RemoteEvent]
+DailyRewardService.RE.Claim  [RemoteEvent]
+TradeService.RE.RequestTrade  [RemoteEvent]
+TradeService.RE.RespondToRequest  [RemoteEvent]
+TradeService.RE.ChangeOffer  [RemoteEvent]
+TradeService.RE.AdvanceTrade  [RemoteEvent]
+TradeService.RE.CancelTrade  [RemoteEvent]
+TradeService.RE.SetTradeRequestsEnabled  [RemoteEvent]
+TradeService.RE.TradeEvent  [RemoteEvent]
+TradeService.RP.TradingEnabled  [RemoteEvent]
+WeatherService.RP.ActiveWeather  [RemoteEvent]
+Towers.RF.PlayTower  [RemoteFunction]
+Towers.RF.CancelTower  [RemoteFunction]
+Towers.RF.CompleteTowerFloor  [RemoteFunction]
+Towers.RE.UpdateTowerTeam  [RemoteEvent]
+Towers.RE.EquipBestTowerTeam  [RemoteEvent]
+RollService.RF.RollDice  [RemoteFunction]
+RollService.RE.SetAutoRoll  [RemoteEvent]
+RollService.RE.RollMessage  [RemoteEvent]
+QuestService.RE.Buy  [RemoteEvent]
+QuestService.RE.Claim  [RemoteEvent]
+MonetizationService.RE.RedeemCode  [RemoteEvent]
+
+===== ReplicatedStorage children =====
+Framework  [ModuleScript]
+CmdrClient  [ModuleScript]
+Packages  [Folder]
+Network  [Folder]
+Assets  [Folder]
+Design  [Folder]
+Weather Events  [Folder]
+ZonePlusReference  [ObjectValue]
+TopbarPlusReference  [ObjectValue]
+
+===== ModuleScript keys (data lists) =====
+ReplicatedStorage.Framework -> IsLoaded, Loaded, Wait
+ReplicatedStorage.Framework.Features.Data.DataController -> ___C, ___X
+ReplicatedStorage.Framework.Features.Data.DataSettings -> client, server
+ReplicatedStorage.Framework.Features.Data.DataService -> 
+ReplicatedStorage.Framework.Features.Cmds.CmdrController -> 
+ReplicatedStorage.Framework.Features.Cmds.Admins -> 1, 2
+ReplicatedStorage.Framework.Features.Cmds.FreecamController -> 
+ReplicatedStorage.Framework.Features.UI.ScaleController -> AutoScale, GetScale, ScaleState
+ReplicatedStorage.Framework.Features.UI.UIReferences -> HUD, Menus, Root
+ReplicatedStorage.Framework.Features.UI.MenuController -> ActiveMenu, CanOpen, CloseMenu, Closed, InitMenuButton, OpenMenu, Opening
+ReplicatedStorage.Framework.Features.UI.TooltipController -> bind, bindToInstance, hide, hideIf
+ReplicatedStorage.Framework.Features.UI.HUDController -> forceShow, getReasons, hide, hideAll, isHidden, show, showAll
+ReplicatedStorage.Framework.Features.UI.UIUtil -> GetAbsolutePosition, GetAbsoluteSize, GetCumulativeScale, GetInstanceAbsolutePosition, GetInstanceAbsoluteSize, GetScale
+ReplicatedStorage.Framework.Features.UI.TopBarController -> 
+ReplicatedStorage.Framework.Features.UI.MoneyController -> 
+ReplicatedStorage.Framework.Features.UI.GradientController -> 
+ReplicatedStorage.Framework.Features.UI.Components.Button -> init
+ReplicatedStorage.Framework.Features.UI.Components.VirtualizedList -> Destroy, Refresh, SetDimensions, SetItemCount, __index, _queueUpdate, _update, new
+ReplicatedStorage.Framework.Features.Player.ShiftlockController -> Character, Enabled, Humanoid, RootPart, _cameraOffsetSpring, _runtimeMaid, _shiftlockMaid
+ReplicatedStorage.Framework.Features.Player.ShiftlockController.Spring -> Impulse, TimeSkip, __index, __newindex, _positionVelocity, new
+ReplicatedStorage.Framework.Features.Inventory.EntryController -> GetAmount
+ReplicatedStorage.Framework.Features.Inventory.EntryTypes -> 
+ReplicatedStorage.Framework.Features.Inventory.EntryRegistry -> allEntries, entriesOfKind, expectEntryConfig, getEntryConfig, getKindConfig
+ReplicatedStorage.Framework.Features.Inventory.BackpackController -> 
+ReplicatedStorage.Framework.Features.Inventory.EntryIcon -> Destroy, GetIcon, __index, new
+ReplicatedStorage.Framework.Features.Inventory.Kinds.Unit.UnitController -> Equip, EquippedUnit, Unequip
+ReplicatedStorage.Framework.Features.Inventory.Kinds.Unit.UnitUtil -> GetLevelPrice, PlayAnimation, PlayCalmAnimtion
+ReplicatedStorage.Framework.Features.Inventory.Kinds.Unit.UnitConfig -> defaultAttributes, entries, sortOrder, stackable
+ReplicatedStorage.Framework.Features.Inventory.Kinds.Unit.Mutations -> Diamond, Emerald, Gold, Rainbow, Ruby, Silver
+ReplicatedStorage.Framework.Features.Inventory.Kinds.Unit.Variants -> Huge, Titanic
+ReplicatedStorage.Framework.Features.Inventory.Kinds.Unit.UnitSelectController -> OpenSelectMenu
+ReplicatedStorage.Framework.Features.Inventory.Kinds.Boost.BoostConfig -> defaultAttributes, entries, sortOrder, stackable
+ReplicatedStorage.Framework.Features.Inventory.Kinds.Boost.BoostController -> UseBoost
+ReplicatedStorage.Framework.Features.Inventory.Kinds.Token.TokenConfig -> defaultAttributes, entries, stackable
+ReplicatedStorage.Framework.Features.Inventory.Kinds.Spin.SpinConfig -> defaultAttributes, entries, sortOrder, stackable
+ReplicatedStorage.Framework.Features.Inventory.Kinds.Spin.SpinController -> PlayShower, Use
+ReplicatedStorage.Framework.Features.Buffs.BuffController -> BuffChanged, BuffsUpdated, GetBuff, ListenToBuff
+ReplicatedStorage.Framework.Features.Buffs.BuffsConfig -> FRIEND_BOOST_PER_FRIEND, FormatAmount, FormatValue, GetAllBuffs, GetBuff
+ReplicatedStorage.Framework.Features.Buffs.BuffBarController -> SetWeather
+ReplicatedStorage.Framework.Features.Rolling.RollController -> RollState
+ReplicatedStorage.Framework.Features.Rolling.RollUtil -> RollUnit
+ReplicatedStorage.Framework.Features.Rolling.Dice -> Get, GetAll, GetDefault
+ReplicatedStorage.Framework.Features.Rolling.DiceShopController -> 
+ReplicatedStorage.Framework.Features.Rolling.DiceController -> 
+ReplicatedStorage.Framework.Features.Upgrades.UpgradeController -> Open
+ReplicatedStorage.Framework.Features.Upgrades.Upgrades -> Damage I, Damage II, Damage III, Damage IV, Damage IX, Damage V, Damage VI, Damage VII, Damage VIII, Fortune I, Fortune II, Fortune III, Fortune IV, Fortune V, Fortune VI, Fortune VII, Health I, Health II, Health III, Health IV, Health V, Health VI, Health VII, Health VIII, Luck I, Luck II, Luck III, Luck IV, Luck IX, Luck V, Luck VI, Luck VII, Luck VIII, Luck X, Luck XI, Luck XII, Money I, Money II, Money III, Money IV, Money IX, Money V, Money VI, Money VII, Money VIII, Money X, Money XI, Mone
+ReplicatedStorage.Framework.Features.Upgrades.TreeStructure -> GetChildren, GetParent, GetPosition
+ReplicatedStorage.Framework.Features.Plot.PlotController -> plot, refreshSlots
+ReplicatedStorage.Framework.Features.Plot.PlotConfig -> GetFloor, GetFloors, GetMaxSlots, GetSlotRebirthRequirement
+ReplicatedStorage.Framework.Features.Selling.SellController -> 
+ReplicatedStorage.Framework.Features.Selling.SellUtil -> CreateSale, CreateSummary, GetPlottedUnits, GetSellPrice
+ReplicatedStorage.Framework.Features.Selling.AutoSellController -> 
+ReplicatedStorage.Framework.Features.Index.IndexController -> SetMutationCategory, SetVariantCategory
+ReplicatedStorage.Framework.Features.Index.IndexService -> Discover
+ReplicatedStorage.Framework.Features.Notifications.NotificationController -> TextNotification
+ReplicatedStorage.Framework.Features.Notifications.EntryDropController -> Play
+ReplicatedStorage.Framework.Features.Onboarding.OnboardingConfig -> FIRST_DICE, STEPS
+ReplicatedStorage.Framework.Features.Onboarding.OnboardingController -> 
+ReplicatedStorage.Framework.Features.Towers.Towers -> Get, GetAll
+ReplicatedStorage.Framework.Features.Towers.TowerSelectionController -> 
+ReplicatedStorage.Framework.Features.Towers.TowerRefs -> ActionWaitTime, Actions, FloorStartedWaitTime, MAX_TEAM_SIZE
+ReplicatedStorage.Framework.Features.Towers.TowerController -> startTower
+ReplicatedStorage.Framework.Features.Traits.Traits -> Damage I, Damage II, Damage III, Eternal, Health I, Health II, Health III, Monarch, Money I, Money II, Money III, Samurai, Shogun, Transcendent
+ReplicatedStorage.Framework.Features.Traits.TraitController -> 
+ReplicatedStorage.Framework.Features.Rebirth.Rebirths -> Get, GetNext
+ReplicatedStorage.Framework.Features.Rebirth.RebirthController -> 
+ReplicatedStorage.Framework.Features.Grades.Grades -> A, A+, B, C, D, S, S+, Z, Z+, 神
+ReplicatedStorage.Framework.Features.Grades.GradeController -> 
+ReplicatedStorage.Framework.Features.Monetization.MonetizationConfig -> Codes, Gamepasses, LimitedUnits, Products
+ReplicatedStorage.Framework.Features.Monetization.MonetizationController -> 
+ReplicatedStorage.Framework.Features.Monetization.LimitedUnitController -> 
+ReplicatedStorage.Framework.Features.Audio.MusicController -> 
+ReplicatedStorage.Framework.Features.Rewards.GroupRewardConfig -> GroupId, Rewards
+ReplicatedStorage.Framework.Features.Rewards.GroupRewardController -> 
+ReplicatedStorage.Framework.Features.Rewards.OfflineEarningsConfig -> Rate
+ReplicatedStorage.Framework.Features.Rewards.OfflineEarningsController -> 
+ReplicatedStorage.Framework.Features.Rewards.DailyRewardConfig -> Cooldown, Rewards
+ReplicatedStorage.Framework.Features.Rewards.DailyRewardController -> 
+ReplicatedStorage.Framework.Features.Trading.TradeConfig -> COUNTDOWN_DURATION, MAX_UNIQUE_ENTRIES, MIN_ACCOUNT_AGE, MIN_ROLLS, REQUEST_COOLDOWN, REQUEST_DURATION, UNTRADEABLE_ENTRIES
+ReplicatedStorage.Framework.Features.Trading.TradeController -> 
+ReplicatedStorage.Framework.Features.Quests.QuestConfig -> Periods, Shop
+ReplicatedStorage.Framework.Features.Quests.QuestController -> 
+ReplicatedStorage.Framework.Features.Weather.WeatherConfig -> Get
+ReplicatedStorage.Framework.Features.Weather.WeatherController -> 
+ReplicatedStorage.Framework.Other.Rarities -> Get, Refs
+ReplicatedStorage.Framework.Other.Images -> Money
+ReplicatedStorage.Framework.Utils.ZoneUtil -> InitPlayerZone
+ReplicatedStorage.Framework.Utils.RockUtil -> BlockExplosion, Ground, OneLayerGround
+ReplicatedStorage.Framework.Utils.ParticleUtil -> Emit
+ReplicatedStorage.Framework.Utils.DamageUtil -> Flash
+ReplicatedStorage.Framework.Utils.BlurUtil -> Clear, SetBlur
+ReplicatedStorage.Framework.Utils.CameraUtil -> DEFAULT_FOV, ResetCamera, TweenFOV
+ReplicatedStorage.Framework.Utils.CameraShaker -> Shake, ShakeOnce, StartShake
+ReplicatedStorage.Framework.Utils.AudioUtil -> cache, getTimeLength, play
+ReplicatedStorage.Framework.Utils.NumberUtil -> IsValid
+ReplicatedStorage.Framework.Utils.DebounceUtil -> Try
+ReplicatedStorage.Framework.Utils.LoadingScreen -> Hide, Show
+ReplicatedStorage.Framework.Utils.RockUtil2 -> BlockExplosion, Ground, OneLayerGround
+ReplicatedStorage.Framework.Utils.ImpactFrameUtil -> ImpactFrame
+ReplicatedStorage.Framework.Utils.ViewportUtil -> ApplyModelToViewport
+ReplicatedStorage.CmdrClient -> ActivationKeys, ActivationUnlocksMouse, Dispatcher, Enabled, Events, HandleEvent, Hide, HideOnLostFocus, MashToEnable, PlaceName, Registry, RemoteEvent, RemoteFunction, ReplicatedRoot, SetActivationKeys, SetActivationUnlocksMouse, SetEnabled, SetHideOnLostFocus, SetMashToEnable, SetPlaceName, Show, Toggle, Util
+ReplicatedStorage.CmdrClient.CmdrInterface.Window -> AddLine, AutoComplete, BeginInput, ClearHistoryState, Cmdr, GetEntryText, GetLabel, Hide, HideInvalidState, IsVisible, LoseFocus, OnTextChanged, ProcessEntry, SelectVertical, SetEntryText, SetIsValidInput, SetVisible, Show, TraverseHistory, UpdateLabel, UpdateWindowHeight, Valid
+ReplicatedStorage.CmdrClient.Shared.Argument -> GetAutocomplete, GetDefaultAutocomplete, GetTransformedValue, GetValue, ParseValue, Transform, TransformSegment, Validate, __index, new
+ReplicatedStorage.CmdrClient.Shared.Command -> BroadcastEvent, GatherArgumentValues, GetArgument, GetData, GetLastArgument, GetStore, HasImplementation, Parse, Reply, Run, SendEvent, Validate, __index, new
+ReplicatedStorage.CmdrClient.Shared.Util -> DictionaryKeys, Each, EmulateTabstops, EncodeEscapedOperator, EncodeEscapedOperators, GetNames, GetTextSize, MakeAliasCommand, MakeDictionary, MakeEnumType, MakeFuzzyFinder, MakeListableType, MakeSequenceType, Map, MashExcessArguments, Mutex, ParseEscapeSequences, ParsePrefixedUnionType, RunCommandString, RunEmbeddedCommands, SplitPrioritizedDelimeter, SplitString, SplitStringSimple, SubstituteArgs, TrimString
+ReplicatedStorage.CmdrClient.Commands.GiveEntry -> Args, Description, Group, Name
+ReplicatedStorage.CmdrClient.Commands.GiveAllEntries -> Args, Description, Group, Name
+ReplicatedStorage.CmdrClient.Commands.GiveMoney -> Args, Description, Group, Name
+ReplicatedStorage.CmdrClient.Commands.help -> Args, ClientRun, Description, Group, Name
+ReplicatedStorage.CmdrClient.Commands.announce -> Aliases, Args, Description, Group, Name
+ReplicatedStorage.CmdrClient.Commands.gotoPlace -> Aliases, Args, AutoExec, Description, Group, Name
+ReplicatedStorage.CmdrClient.Commands.kick -> Aliases, Args, Description, Group, Name
+ReplicatedStorage.CmdrClient.Commands.kill -> Aliases, Args, Description, Group, Name
+ReplicatedStorage.CmdrClient.Commands.respawn -> Args, AutoExec, Description, Group, Name
+ReplicatedStorage.CmdrClient.Commands.teleport -> Aliases, Args, AutoExec, Description, Group, Name
+ReplicatedStorage.CmdrClient.Commands.blink -> Aliases, Args, ClientRun, Description, Group, Name
+ReplicatedStorage.CmdrClient.Commands.fetch -> Aliases, Args, Description, Group, Name
+ReplicatedStorage.CmdrClient.Commands.getPlayerPlaceInstance -> Aliases, Args, Description, Group, Name
+ReplicatedStorage.CmdrClient.Commands.position -> Aliases, Args, ClientRun, Description, Group, Name
+ReplicatedStorage.CmdrClient.Commands.thru -> Aliases, Args, ClientRun, Description, Group, Name
+ReplicatedStorage.CmdrClient.Commands.uptime -> Aliases, Args, Description, Group, Name
+ReplicatedStorage.CmdrClient.Commands.version -> Args, Description, Group, Name, Run
+ReplicatedStorage.CmdrClient.Commands.alias -> Aliases, Args, ClientRun, Description, Group, Name
+ReplicatedStorage.CmdrClient.Commands.bind -> Aliases, Args, ClientRun, Description, Group, Name
+ReplicatedStorage.CmdrClient.Commands.clear -> Aliases, Args, ClientRun, Description, Group, Name
+ReplicatedStorage.CmdrClient.Commands.convertTimestamp -> Aliases, Args, ClientRun, Description, Group, Name
+ReplicatedStorage.CmdrClient.Commands.echo -> Aliases, Args, Description, Group, Name, Run
+ReplicatedStorage.CmdrClient.Commands.edit -> Aliases, Args, ClientRun, Description, Group, Name
+ReplicatedStorage.CmdrClient.Commands.history -> Aliases, Args, AutoExec, ClientRun, Description, Group, Name
+ReplicatedStorage.CmdrClient.Commands.hover -> Args, ClientRun, Description, Group, Name
+ReplicatedStorage.CmdrClient.Commands.jsonArrayDecode -> Aliases, Args, ClientRun, Description, Group, Name
+ReplicatedStorage.CmdrClient.Commands.jsonArrayEncode -> Aliases, Args, Description, Group, Name, Run
+ReplicatedStorage.CmdrClient.Commands.getLen -> Aliases, Args, Description, Group, Name, Run
+ReplicatedStorage.CmdrClient.Commands.math -> Aliases, Args, AutoExec, ClientRun, Description, Group, Name
+ReplicatedStorage.CmdrClient.Commands.pick -> Aliases, Args, Description, Group, Name, Run
+ReplicatedStorage.CmdrClient.Commands.rand -> Aliases, Args, Description, Group, Name, Run
+ReplicatedStorage.CmdrClient.Commands.replace -> Aliases, Args, AutoExec, Description, Group, Name, Run
+ReplicatedStorage.CmdrClient.Commands.resolve -> Aliases, Args, AutoExec, Description, Group, Name, Run
+ReplicatedStorage.CmdrClient.Commands.run -> Aliases, Args, AutoExec, Description, Group, Name, Run
+ReplicatedStorage.CmdrClient.Commands.runLines -> Aliases, Args, ClientRun, Description, Group, Name
+ReplicatedStorage.CmdrClient.Commands.runif -> Aliases, Args, Description, Group, Name, Run
+ReplicatedStorage.CmdrClient.Commands.unbind -> Aliases, Args, ClientRun, Description, Group, Name
+ReplicatedStorage.CmdrClient.Commands.var -> Aliases, Args, AutoExec, ClientRun, Description, Group, Name
+ReplicatedStorage.CmdrClient.Commands.varSet -> Aliases, Args, ClientRun, Description, Group, Name
+ReplicatedStorage.Packages.Zone -> Destroy, __index, _calculateRegion, _disconnectTouchedConnection, _displayBounds, _find, _formTouchedConnection, _getAll, _getRegionConstructor, _onItemCallback, _partTouchedZone, _update, _updateOccupants, _updateTouchedConnection, _updateTouchedConnections, bindToGroup, destroy, enum, findItem, findLocalPlayer, findPart, findPlayer, findPoint, fromRegion, getCheckerPart, getItems, getParts, getPlayers, getRandomPoint, new, onItemEnter, onItemExit, relocate, setAccuracy, setDetection, touchedCo
+ReplicatedStorage.Packages.Zone.Enum -> createEnum, enums, getEnums
+ReplicatedStorage.Packages.Zone.Enum.Accuracy -> 1, 2, 3, 4
+ReplicatedStorage.Packages.Zone.Enum.Detection -> 1, 2
+ReplicatedStorage.Packages.Zone.Janitor -> ClassName, Is, __call, __index, is, new
+ReplicatedStorage.Packages.Zone.OldSignal -> ClassName, Connect, Destroy, Disconnect, Fire, Wait, __index, connect, destroy, disconnect, fire, new, totalConnections, wait
+ReplicatedStorage.Packages.Zone.ZoneSignal -> Connect, Destroy, DisconnectAll, Fire, Wait, __index, destroy, new
+ReplicatedStorage.Packages.Zone.ZoneController -> _deregisterConnection, _deregisterZone, _formHeartbeat, _getZonesAndItems, _registerConnection, _registerZone, _updateZoneDetails, getGroup, getTouchingZones, getWorkspaceContainer, getZones, setGroup, trackers, updateDetection
+ReplicatedStorage.Packages.Zone.ZoneController.CollectiveWorldModel -> GetPartBoundsInBox, GetPartBoundsInRadius, GetPartsInPart, _getCombinedResults, setupWorldModel
+ReplicatedStorage.Packages.Zone.ZoneController.Tracker -> __index, _preventMultiFrameUpdates, bodyPartsToIgnore, getCharacterSize, getCombinedTotalVolumes, itemAdded, itemRemoved, new, trackers, update
+ReplicatedStorage.Packages.Zone.ZonePlusReference -> addToReplicatedStorage, getObject
+ReplicatedStorage.Packages.ViewportModel -> Calibrate, ClassName, GetFitDistance, GetMinimumFitCFrame, SetModel, __index, new
+ReplicatedStorage.Packages.UIGradientPlus -> ApplyAnimation, Destroy, Environments, Loop, PauseAllAnimations, PauseAnimation, RemoveAnimation, ResumeAllAnimations, ResumeAnimation, Rotate, SetColorKeypoints, SetTransparencyKeypoints, UpdateGradient, new
+ReplicatedStorage.Packages.State -> ReactiveFlags, atom, batch, computed, effect, effectScope, endBatch, flags, getActiveSub, listen, mapped, new, observe, onCleanup, setActiveSub, signal, startBatch, subscribe, trigger, untracked
+ReplicatedStorage.Packages.State.system -> ReactiveFlags, checkDirty, createReactiveSystem, link, propagate, shallowPropagate, unlink
+ReplicatedStorage.Packages.TableUtil -> Assign, Copy, DecodeJSON, EncodeJSON, Every, Extend, Filter, Find, Flat, FlatMap, IsEmpty, Keys, Lock, Map, Reconcile, Reduce, Reverse, Sample, Shuffle, Some, SwapRemove, SwapRemoveFirstValue, Sync, Truncate, Values, Zip
+ReplicatedStorage.Packages.Signal -> Is, Wrap, new
+ReplicatedStorage.Packages.Promise -> All, AllSettled, Any, Async, Defer, Delay, Each, Error, FromEvent, Is, Promisify, Race, Reject, Resolve, Some, Status, Try, __index, __tostring, _all, _getTime, _new, _timeEvent, _try, all, allSettled, any, async, defer, delay, each, fromEvent, is, new, promisify, prototype, race, reject, resolve, retry, some, try
+ReplicatedStorage.Packages.Network -> Client, ClientComm, Server, ServerComm
+ReplicatedStorage.Packages.Network.Util -> DefaultCommFolderName, GetCommSubFolder, IsServer, None, WaitForChildTimeout
+ReplicatedStorage.Packages.Network.Option -> And, AndThen, Assert, Contains, Deserialize, Expect, ExpectNone, Filter, Is, IsNone, IsSome, Match, None, Or, OrElse, Serialize, Some, Unwrap, UnwrapOr, UnwrapOrElse, Wrap, XOr, __eq, __index, __tostring, _new
+ReplicatedStorage.Packages.Network.Client -> GetFunction, GetProperty, GetSignal
+ReplicatedStorage.Packages.Network.Client.ClientComm -> BuildObject, Destroy, GetFunction, GetProperty, GetSignal, __index, new
+ReplicatedStorage.Packages.Network.Client.ClientRemoteProperty -> Destroy, Get, IsReady, Observe, OnReady, __index, new
+ReplicatedStorage.Packages.Network.Client.ClientRemoteSignal -> Connect, Destroy, Fire, __index, _processOutboundMiddleware, new
+ReplicatedStorage.Packages.Network.Server -> BindFunction, CreateProperty, CreateSignal, WrapMethod
+ReplicatedStorage.Packages.Network.Server.ServerComm -> BindFunction, CreateProperty, CreateSignal, Destroy, WrapMethod, __index, new
+ReplicatedStorage.Packages.Network.Server.RemoteSignal -> Connect, Destroy, Fire, FireAll, FireExcept, FireFilter, FireFor, IsUnreliable, __index, _processOutboundMiddleware, new
+ReplicatedStorage.Packages.Network.Server.RemoteProperty -> ClearFilter, ClearFor, ClearForList, Destroy, Get, GetFor, Set, SetFilter, SetFor, SetForList, SetTop, __index, new
+ReplicatedStorage.Packages.Maid -> new
+ReplicatedStorage.Packages.ProfileStore -> DataStoreState, GetAsync, IsClosing, IsCriticalState, MessageAsync, New, OnCriticalToggle, OnError, OnOverwrite, RemoveAsync, SetConstant, StartSessionAsync, Test, VersionQuery, __index
+ReplicatedStorage.Packages.TopbarPlus -> Destroy, __index, _setToggleItemsVisible, _updateSelectionInstances, addToJanitor, align, autoDeselect, baseDisplayOrder, baseDisplayOrderChanged, baseTheme, bindEvent, bindToggleItem, bindToggleKey, call, captionLastClosedClock, clearNotices, clipOutside, container, debounce, deselect, destroy, disableOverlay, disableStateOverlay, freezeMenu, getCollective, getDropdown, getIcon, getIconByUID, getIcons, getInstance, getInstanceOrCollective, getStateGroup, highlightIcon, highlightKey, iconAdded, 
+ReplicatedStorage.Packages.TopbarPlus.Attribute -> 
+ReplicatedStorage.Packages.TopbarPlus.Reference -> addToReplicatedStorage, getObject, objectName
+ReplicatedStorage.Packages.TopbarPlus.Utility -> clipOutside, copyTable, createStagger, formatStateName, generateUID, getClippedContainer, joinFeature, localPlayerRespawned, reverseTable, round, setVisible
+ReplicatedStorage.Packages.TopbarPlus.Themes.Classic -> 1, 10, 11, 12, 13, 14, 15, 16, 2, 3, 4, 5, 6, 7, 8, 9
+ReplicatedStorage.Packages.TopbarPlus.Themes.Default -> 1, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 2, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 3, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 4, 40, 5, 6, 7, 8, 9
+ReplicatedStorage.Packages.TopbarPlus.Features.Gamepad -> getIconToHighlight, registerButton, start
+ReplicatedStorage.Packages.TopbarPlus.Features.Overflow -> getAvailableIcons, getRealXPositions, getWidth, start, updateAvailableIcons, updateBoundary
+ReplicatedStorage.Packages.TopbarPlus.Features.Themes -> apply, change, getClippedClone, getInstanceValue, getModifications, getRealInstance, getThemeValue, merge, modify, rebuild, refresh, remove, removeWith, set, statesMatch
+ReplicatedStorage.Packages.TopbarPlus.Features.Themes.Classic -> 1, 10, 11, 12, 13, 14, 15, 16, 2, 3, 4, 5, 6, 7, 8, 9
+ReplicatedStorage.Packages.TopbarPlus.Features.Themes.Default -> 1, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 2, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 3, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 4, 40, 5, 6, 7, 8, 9
+ReplicatedStorage.Packages.TopbarPlus.Packages.GoodSignal -> Connect, Destroy, DisconnectAll, Fire, Once, Wait, __index, new
+ReplicatedStorage.Packages.TopbarPlus.Packages.Janitor -> ClassName, IGNORE_MEMORY_DEBUG, Is, __call, __index, is, new
+ReplicatedStorage.Packages.ContextActionUtility -> Archivable, BindAction, BindActionAtPriority, ClassName, DisableAction, GetButton, LocalToolEquipped, LocalToolUnequipped, MakeButtonRound, MakeButtonSquare, Name, Parent, SetImage, SetPressedColor, SetReleasedColor, SetTitle, UnbindAction
+ReplicatedStorage.Packages.CameraShaker -> CameraShakeInstance, Presets, Shake, ShakeOnce, ShakeSustain, Start, StartShake, Stop, StopSustained, Update, __index, new
+ReplicatedStorage.Packages.CameraShaker.CameraShakeInstance -> CameraShakeState, GetNormalizedFadeTime, GetScaleMagnitude, GetScaleRoughness, GetState, IsFadingIn, IsFadingOut, IsShaking, SetScaleMagnitude, SetScaleRoughness, StartFadeIn, StartFadeOut, UpdateShake, __index, new
+ReplicatedStorage.Packages.CameraShaker.CameraShakePresets -> 
+ReplicatedStorage.Packages.Data.Client -> data, get, hasLoaded, init, insert, load, loadedSignal, remove, set
+ReplicatedStorage.Packages.Data.Server -> 
+ReplicatedStorage.Packages.Data.Value -> new, shouldRecordPath
+ReplicatedStorage.Packages.NumberFormatter -> FormatCompact, FormatDuration, FormatFixed, FormatHexFloat, FormatInt, FormatPrecision, FormatStandard, FormatUInt, ParseCompact
+ReplicatedStorage.Packages.NumberFormatter._aux -> cast_to_int32_t_check_range, cast_to_string, expect_strictly_number, format_special, format_unsigned_finite, round_sig
+ReplicatedStorage.Packages.NumberFormatter.config -> compactSuffix, decimalSymbol, durationSeparatorSymbol, groupingSymbol, infinitySymbol, quietNaNSymbol, showNaNPayload, signalingNaNSymbol, subnormalsAsZero, useARM64FCVTZS
+ReplicatedStorage.Packages.NumberFormatter.DoubleConversion.cached_power -> bin_expt_range, for_decimal_expt
+ReplicatedStorage.Packages.NumberFormatter.DoubleConversion.diy_fp -> create, create_normalized, mul128, normalize, to_double
+ReplicatedStorage.Packages.NumberFormatter.DoubleConversion.ieee -> normalized_boundaries
+ReplicatedStorage.Packages.NumberFormatter.DoubleConversion.uint64_t -> add, compare, mul, mul32, read, sal, sub, to_double
+ReplicatedStorage.Packages.NumberFormatter.DoubleConversion.bignum -> add, align, assign_decimal, assign_uint64_t, clamp, compare, divmod, from_power, mul_uint32_t, mul_uint64_t, mult_pow10, plus_compare, sal, square, sub, sub_times
+ReplicatedStorage.Packages.NumberFormatter.DoubleConversion.DecimalToDoubleConverter -> ToDouble
+ReplicatedStorage.Packages.NumberFormatter.DoubleConversion.proxy -> 
+ReplicatedStorage.Packages.NumberFormatter.DoubleConversion.DoubleToStringConverter -> Flags, Format, new
+ReplicatedStorage.Packages.NumberFormatter.DoubleConversion.DoubleToDecimalConverter -> ToExact, ToShortest
+ReplicatedStorage.Packages.TimeFormatter -> ConvertTimeUnitToSecond, FormatSecondToTime, GetCurrentDateUnit, GetElapsedSecondSinceTimestamp, GetMarkedTimestamp, MarkTimestamp, UnmarkTimestamp, UpdateMarkedTimestamp, ViewMarkedTimestamps
+ReplicatedStorage.Packages.Ripple -> config, createMotion, createSpring, easing, motionScheduler, springScheduler, tweenScheduler
+ReplicatedStorage.Packages.Ripple.config -> default, figmaBouncy, figmaGentle, figmaQuick, figmaSlow, gentle, molasses, slow, stiff, wobbly
+ReplicatedStorage.Packages.Ripple.easing -> backIn, backInOut, backOut, bounceIn, bounceInOut, bounceOut, circIn, circInOut, circOut, cubicIn, cubicInOut, cubicOut, elasticIn, elasticInOut, elasticOut, expoIn, expoInOut, expoOut, instant, linear, quadIn, quadInOut, quadOut, quartIn, quartInOut, quartOut, quintIn, quintInOut, quintOut, sineIn, sineInOut, sineOut, smoothstep
+ReplicatedStorage.Packages.Ripple.motion -> createMotion, scheduler
+ReplicatedStorage.Packages.Ripple.spring -> createSpring, scheduler
+ReplicatedStorage.Packages.Ripple.tween -> createSpring, scheduler
+ReplicatedStorage.Packages.Ripple.types -> 
+ReplicatedStorage.Packages.Ripple.utils.intermediate -> addValue, copy, create, getValue, recomputeValue, setValue, setValueFast, zero
+ReplicatedStorage.Packages.Ripple.utils.oklab -> fromSRGB, toSRGB
