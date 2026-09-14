@@ -177,6 +177,15 @@ table.sort(diceRanked, function(a, b)
 	return pa > pb
 end)
 
+-- potions sorted by category then tier so the dropdown is scannable
+local POTIONS_SORTED = {}
+for _, n in ipairs(POTIONS) do POTIONS_SORTED[#POTIONS_SORTED + 1] = n end
+table.sort(POTIONS_SORTED, function(a, b)
+	local ca, cb = potionCategory(a), potionCategory(b)
+	if ca ~= cb then return ca < cb end
+	return potionTier(a) < potionTier(b)
+end)
+
 -- ============================================================
 -- Obsidian + addons
 -- ============================================================
@@ -217,6 +226,49 @@ local function addSelAll(box, dd, values, setter)
 	box:AddButton({ Text = "Deselect All", Func = function()
 		setter({}); pcall(function() dd:SetValue({}) end)
 	end })
+end
+
+-- on-screen toggle button (desktop shows no mobile button; RightShift also works)
+local function toggleMenu()
+	if pcall(function() Library:Toggle() end) then return end
+	pcall(function() Library.ScreenGui.Enabled = not Library.ScreenGui.Enabled end)
+end
+local toggleGui = Instance.new("ScreenGui")
+toggleGui.Name = "AnimeDiceToggle"
+toggleGui.ResetOnSpawn = false
+toggleGui.Parent = (gethui and gethui()) or game:GetService("CoreGui")
+local toggleBtn = Instance.new("TextButton")
+toggleBtn.Size = UDim2.fromOffset(120, 34)
+toggleBtn.Position = UDim2.fromOffset(18, 120)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 34)
+toggleBtn.TextColor3 = Color3.fromRGB(240, 240, 245)
+toggleBtn.Font = Enum.Font.GothamBold
+toggleBtn.TextSize = 14
+toggleBtn.Text = "Anime Dice"
+toggleBtn.AutoButtonColor = true
+toggleBtn.BorderSizePixel = 0
+toggleBtn.Parent = toggleGui
+Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(0, 6)
+do -- click to toggle, drag to move (small move = click)
+	local dragging, moved, startIn, startPos
+	toggleBtn.InputBegan:Connect(function(i)
+		if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+			dragging, moved, startIn, startPos = true, false, i.Position, toggleBtn.Position
+		end
+	end)
+	UIS.InputChanged:Connect(function(i)
+		if dragging and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
+			local d = i.Position - startIn
+			if math.abs(d.X) + math.abs(d.Y) > 4 then moved = true end
+			toggleBtn.Position = UDim2.fromOffset(startPos.X.Offset + d.X, startPos.Y.Offset + d.Y)
+		end
+	end)
+	UIS.InputEnded:Connect(function(i)
+		if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+			if dragging and not moved then toggleMenu() end
+			dragging = false
+		end
+	end)
 end
 
 -- ============================================================
@@ -618,9 +670,9 @@ local PotBox  = Tabs.Shop:AddLeftGroupbox("Potions")
 local DiceBox = Tabs.Shop:AddRightGroupbox("Dice")
 local UpgBox  = Tabs.Shop:AddRightGroupbox("Upgrades")
 
-local potionsDD = PotBox:AddDropdown("Potions", { Text = "Potions", Values = POTIONS, Default = {}, Multi = true,
+local potionsDD = PotBox:AddDropdown("Potions", { Text = "Potions", Values = POTIONS_SORTED, Default = {}, Multi = true,
 	Callback = function(v) selectedPotions = v end })
-addSelAll(PotBox, potionsDD, POTIONS, function(s) selectedPotions = s end)
+addSelAll(PotBox, potionsDD, POTIONS_SORTED, function(s) selectedPotions = s end)
 PotBox:AddToggle("AutoUsePotions", { Text = "Auto Use Potions", Default = false,
 	Tooltip = "Re-uses each potion only when it expires; one per type.",
 	Callback = function(v) autoUsePotions = v end })
@@ -762,6 +814,7 @@ Library:OnUnload(function()
 	if flying then stopFly() end; flying = false
 	if autoSellFull and UpdateAutoSell then pcall(function() UpdateAutoSell:FireServer(false) end) end
 	fpsBoost(false); gpuSaver(false)
+	pcall(function() toggleGui:Destroy() end)
 end)
 
 SaveManager:LoadAutoloadConfig()
