@@ -140,6 +140,38 @@ local function setToList(set)
 end
 
 -- ============================================================
+-- config readers (potion durations, dice ranking)
+-- ============================================================
+local BoostConfig, DiceMod
+pcall(function() BoostConfig = require(RS.Framework.Features.Inventory.Kinds.Boost.BoostConfig) end)
+pcall(function() DiceMod = require(RS.Framework.Features.Rolling.Dice) end)
+
+local ROMAN = { I = 1, II = 2, III = 3, IV = 4, V = 5, VI = 6, VII = 7, VIII = 8, IX = 9, X = 10, XI = 11, XII = 12 }
+local function potionType(name) return (name:gsub("%s+[IVX]+$", "")) end
+local function potionTier(name) local r = name:match("([IVX]+)$"); return r and ROMAN[r] or 0 end
+local function potionDuration(name)
+	local d
+	pcall(function()
+		local e = BoostConfig and BoostConfig.entries and BoostConfig.entries[name]
+		if e then d = e.duration or e.Duration or e.time or e.Time or e.length or e.seconds
+			or (e.attributes and (e.attributes.duration or e.attributes.time)) end
+	end)
+	return tonumber(d) or 300 -- fallback if the field name differs; verify against a real entry
+end
+
+local function dicePrice(name)
+	local p
+	pcall(function()
+		local d = DiceMod and DiceMod.Get and DiceMod.Get(name)
+		if d then p = d.price or d.Price or d.cost or d.Cost end
+	end)
+	return tonumber(p) or 0
+end
+local diceRanked = {} -- DICE names, most expensive (= best) first
+for _, n in ipairs(DICE) do diceRanked[#diceRanked + 1] = n end
+table.sort(diceRanked, function(a, b) return dicePrice(a) > dicePrice(b) end)
+
+-- ============================================================
 -- Obsidian + addons
 -- ============================================================
 local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
@@ -150,6 +182,7 @@ local SaveManager  = loadstring(game:HttpGet(repo .. "addons/SaveManager.lua"))(
 local Window = Library:CreateWindow({
 	Title             = "Anime Dice",
 	Footer            = "nyx build",
+	Size              = UDim2.fromOffset(660, 520), -- wider so long unit names aren't cut off
 	Center            = true,
 	AutoShow          = true,
 	ToggleKeybind     = Enum.KeyCode.RightShift,
@@ -169,18 +202,28 @@ local Tabs = {
 	Settings= Window:AddTab({ Name = "Settings",Icon = "settings" }),
 }
 
+-- adds Select All / Deselect All buttons for a multi-dropdown
+local function addSelAll(box, dd, values, setter)
+	box:AddButton({ Text = "Select All", Func = function()
+		local s = {}; for _, v in ipairs(values) do s[v] = true end
+		setter(s); pcall(function() dd:SetValue(s) end)
+	end })
+	box:AddButton({ Text = "Deselect All", Func = function()
+		setter({}); pcall(function() dd:SetValue({}) end)
+	end })
+end
+
 -- ============================================================
 -- state
 -- ============================================================
 local running = true
 -- farm
-local autoRoll, rollDelay = false, 0
+local autoRoll = false
 local autoCollect, plotId = false, 1
 local autoRebirth = false
 local autoSpin = false
 local autoClaimQuest, autoClaimAll = false, false
 local autoEquipBest, autoEquipDice = false, false
-local bestDice = "Void"
 -- units
 local autoGrade, gradeUnit, keepGrades = false, "All", {}
 local autoTrait, traitUnit, keepTraits = false, "All", {}
@@ -195,7 +238,7 @@ local runsPerMap, stopFloor = 20, 0
 local towerEquipBest = false
 -- shop
 local autoUsePotions, selectedPotions = false, {}
-local autoBuyDice, buyDicePick = false, "Void"
+local autoBuyDice = false
 -- player
 local antiAfk = false
 local walkSpeedOn, walkSpeedAmt = false, 75
@@ -204,6 +247,19 @@ local flying, flySpeed = false, 60
 -- webhook
 local unitHookOn, unitHookUrl, unitHookInterval, unitHookRarities = false, "", 30, {}
 local invHookOn, invHookUrl, invHookInterval = false, "", 15
+
+-- auto-detect plot id via the game's Comm property (RP.PlotId)
+task.spawn(function()
+	pcall(function()
+		local Comm = require(RS.Packages.Network)
+		local pc = Comm.ClientComm.new(Network, false, "PlotService")
+		local prop = pc:GetProperty("PlotId")
+		if prop then
+			local v = prop:Get(); if v ~= nil then plotId = v end
+			if prop.Observe then prop:Observe(function(nv) if nv ~= nil then plotId = nv end end) end
+		end
+	end)
+end)
 
 -- ============================================================
 -- background loops (flag-gated)
@@ -217,12 +273,12 @@ local function loop(intervalOn, intervalOff, fn)
 	end)
 end
 
--- fast roll (InvokeServer yields → paced by server)
+-- fast roll — always max speed (InvokeServer yields → paced by server round-trip)
 task.spawn(function()
 	while running do
 		if autoRoll and RollDice then
 			pcall(function() RollDice:InvokeServer() end)
-			if rollDelay > 0 then task.wait(rollDelay) else task.wait() end
+			task.wait()
 		else
 			task.wait(0.1)
 		end
@@ -250,7 +306,8 @@ loop(0.5, 0.5, function()
 	if autoEquipBest and PlotEquipBest then pcall(function() PlotEquipBest:FireServer() end) return true end
 end)
 loop(5, 1, function()
-	if autoEquipDice and EquipDice then pcall(function() EquipDice:FireServer(bestDice) end) return true end
+	-- equip the best (most expensive) dice; unowned equips are ignored server-side
+	if autoEquipDice and EquipDice and diceRanked[1] then pcall(function() EquipDice:FireServer(diceRanked[1]) end) return true end
 end)
 loop(1, 0.3, function()
 	if autoSpin and SpinUse then pcall(function() SpinUse:FireServer("Lucky Spin") end) return true end
@@ -294,14 +351,30 @@ loop(1, 1, function()
 	return true
 end)
 
--- shop: potions, buy dice
-loop(30, 2, function()
+-- shop: potions (re-use only when expired, one per type), buy best dice
+local lastUsed = {}
+loop(5, 2, function()
 	if not autoUsePotions or not BoostUse then return false end
-	for _, p in ipairs(setToList(selectedPotions)) do pcall(function() BoostUse:FireServer(p) end) end
+	-- one potion per type: keep only the highest tier of each family
+	local best = {}
+	for _, p in ipairs(setToList(selectedPotions)) do
+		local ty = potionType(p)
+		if not best[ty] or potionTier(p) > potionTier(best[ty]) then best[ty] = p end
+	end
+	local now = os.clock()
+	for _, p in pairs(best) do
+		if not lastUsed[p] or (now - lastUsed[p]) >= potionDuration(p) then
+			pcall(function() BoostUse:FireServer(p) end)
+			lastUsed[p] = now
+		end
+	end
 	return true
 end)
 loop(2, 1, function()
-	if autoBuyDice and BuyDice then pcall(function() BuyDice:FireServer(buyDicePick) end) return true end
+	-- buy best: buy every dice; server buys what you can afford (incl. the best)
+	if not autoBuyDice or not BuyDice then return false end
+	for _, n in ipairs(diceRanked) do pcall(function() BuyDice:FireServer(n) end) end
+	return true
 end)
 
 -- tower state machine
@@ -435,16 +508,12 @@ end)
 local FarmBox = Tabs.Farm:AddLeftGroupbox("Auto Farm")
 local EquipBox = Tabs.Farm:AddRightGroupbox("Equip")
 
-FarmBox:AddToggle("AutoRoll", { Text = "Auto Roll", Default = false,
+FarmBox:AddToggle("AutoRoll", { Text = "Auto Roll (max speed)", Default = false,
 	Tooltip = "Loops RollDice as fast as the server answers.",
 	Callback = function(v) autoRoll = v end })
-FarmBox:AddSlider("RollDelay", { Text = "Roll delay (s) — 0 = max", Default = 0, Min = 0, Max = 1, Rounding = 2,
-	Callback = function(v) rollDelay = v end })
 FarmBox:AddToggle("AutoCollect", { Text = "Auto Collect Money", Default = false,
+	Tooltip = "Plot auto-detected.",
 	Callback = function(v) autoCollect = v end })
-FarmBox:AddSlider("PlotId", { Text = "Plot ID", Default = 1, Min = 1, Max = 8, Rounding = 0,
-	Tooltip = "Your plot number (captured as 1). Bump if collect does nothing.",
-	Callback = function(v) plotId = v end })
 FarmBox:AddToggle("AutoRebirth", { Text = "Auto Rebirth", Default = false,
 	Callback = function(v) autoRebirth = v end })
 FarmBox:AddToggle("AutoSpin", { Text = "Auto Spin", Default = false,
@@ -456,12 +525,11 @@ FarmBox:AddToggle("AutoClaimAll", { Text = "Auto Claim All (daily/group/offline)
 FarmBox:AddInput("Redeem", { Text = "Redeem Code", Placeholder = "code", Default = "",
 	Finished = true, Callback = function(v) if RedeemCode and v ~= "" then pcall(function() RedeemCode:FireServer(v) end) end end })
 
-EquipBox:AddToggle("AutoEquipBest", { Text = "Auto Equip Best", Default = false,
+EquipBox:AddToggle("AutoEquipBest", { Text = "Auto Equip Best Units", Default = false,
 	Callback = function(v) autoEquipBest = v end })
-EquipBox:AddToggle("AutoEquipDice", { Text = "Auto Equip Best Owned Dice", Default = false,
+EquipBox:AddToggle("AutoEquipDice", { Text = "Auto Equip Best Dice", Default = false,
+	Tooltip = "Keeps your best (most expensive) dice equipped automatically.",
 	Callback = function(v) autoEquipDice = v end })
-EquipBox:AddDropdown("BestDice", { Text = "Dice to keep equipped", Values = DICE, Default = "Void", Multi = false,
-	Callback = function(v) bestDice = v end })
 
 -- ============================================================
 -- UNITS tab
@@ -476,9 +544,10 @@ local unitNames = ownedUnitNames()
 
 local gradeUnitDD = GradeBox:AddDropdown("GradeUnit", { Text = "Unit", Values = unitNames, Default = "All", Multi = false,
 	Callback = function(v) gradeUnit = v end })
-GradeBox:AddDropdown("KeepGrades", { Text = "Keep Grades", Values = GRADES, Default = {}, Multi = true,
+local keepGradesDD = GradeBox:AddDropdown("KeepGrades", { Text = "Keep Grades", Values = GRADES, Default = {}, Multi = true,
 	Tooltip = "Reroll stops when the unit hits one of these.",
 	Callback = function(v) keepGrades = v end })
+addSelAll(GradeBox, keepGradesDD, GRADES, function(s) keepGrades = s end)
 GradeBox:AddToggle("AutoGrade", { Text = "Auto Grade", Default = false,
 	Callback = function(v) autoGrade = v end })
 
@@ -489,15 +558,17 @@ SellBox:AddButton({ Text = "Sell Inventory",
 SellBox:AddToggle("SellWhenFull", { Text = "Sell All When Full (native auto-sell)", Default = false,
 	Callback = function(v) autoSellFull = v; if UpdateAutoSell then pcall(function() UpdateAutoSell:FireServer(v) end) end end })
 
-LockBox:AddDropdown("LockRarities", { Text = "Rarities", Values = RARITIES, Default = {}, Multi = true,
+local lockRaritiesDD = LockBox:AddDropdown("LockRarities", { Text = "Rarities", Values = RARITIES, Default = {}, Multi = true,
 	Callback = function(v) lockRarities = v end })
+addSelAll(LockBox, lockRaritiesDD, RARITIES, function(s) lockRarities = s end)
 LockBox:AddToggle("AutoLock", { Text = "Auto Lock", Default = false,
 	Callback = function(v) autoLock = v end })
 
 local traitUnitDD = TraitBox:AddDropdown("TraitUnit", { Text = "Unit", Values = unitNames, Default = "All", Multi = false,
 	Callback = function(v) traitUnit = v end })
-TraitBox:AddDropdown("KeepTraits", { Text = "Keep Traits", Values = TRAITS, Default = {}, Multi = true,
+local keepTraitsDD = TraitBox:AddDropdown("KeepTraits", { Text = "Keep Traits", Values = TRAITS, Default = {}, Multi = true,
 	Callback = function(v) keepTraits = v end })
+addSelAll(TraitBox, keepTraitsDD, TRAITS, function(s) keepTraits = s end)
 TraitBox:AddToggle("AutoTrait", { Text = "Auto Trait", Default = false,
 	Callback = function(v) autoTrait = v end })
 
@@ -522,8 +593,9 @@ TowerBox:AddDropdown("TowerMode", { Text = "Mode", Values = TOWERS, Default = "H
 	Callback = function(v) towerMode = v end })
 TowerBox:AddToggle("AutoRotate", { Text = "Auto Rotate Maps", Default = false,
 	Callback = function(v) autoRotate = v end })
-TowerBox:AddDropdown("RotationMaps", { Text = "Rotation Maps", Values = TOWERS, Default = {}, Multi = true,
+local rotationMapsDD = TowerBox:AddDropdown("RotationMaps", { Text = "Rotation Maps", Values = TOWERS, Default = {}, Multi = true,
 	Callback = function(v) rotationMaps = v end })
+addSelAll(TowerBox, rotationMapsDD, TOWERS, function(s) rotationMaps = s end)
 TowerBox:AddSlider("RunsPerMap", { Text = "Runs Per Map", Default = 20, Min = 1, Max = 20, Rounding = 0,
 	Callback = function(v) runsPerMap = v end })
 TowerBox:AddSlider("StopFloor", { Text = "Stop At Floor (0 = max)", Default = 0, Min = 0, Max = 1000, Rounding = 0,
@@ -540,15 +612,15 @@ local PotBox  = Tabs.Shop:AddLeftGroupbox("Potions")
 local DiceBox = Tabs.Shop:AddRightGroupbox("Dice")
 local UpgBox  = Tabs.Shop:AddRightGroupbox("Upgrades")
 
-PotBox:AddDropdown("Potions", { Text = "Potions", Values = POTIONS, Default = {}, Multi = true,
+local potionsDD = PotBox:AddDropdown("Potions", { Text = "Potions", Values = POTIONS, Default = {}, Multi = true,
 	Callback = function(v) selectedPotions = v end })
+addSelAll(PotBox, potionsDD, POTIONS, function(s) selectedPotions = s end)
 PotBox:AddToggle("AutoUsePotions", { Text = "Auto Use Potions", Default = false,
+	Tooltip = "Re-uses each potion only when it expires; one per type.",
 	Callback = function(v) autoUsePotions = v end })
 
-DiceBox:AddDropdown("BuyDicePick", { Text = "Dice", Values = DICE, Default = "Void", Multi = false,
-	Callback = function(v) buyDicePick = v end })
-DiceBox:AddToggle("AutoBuyDice", { Text = "Auto Buy Dice", Default = false,
-	Tooltip = "Buys the selected dice on a loop (server rejects if unaffordable).",
+DiceBox:AddToggle("AutoBuyDice", { Text = "Auto Buy Best Dice", Default = false,
+	Tooltip = "Buys every dice; server buys what you can afford (incl. the best).",
 	Callback = function(v) autoBuyDice = v end })
 
 UpgBox:AddLabel({ Text = "Auto-buy upgrades: needs its remote captured — deferred.", Visible = true })
@@ -580,8 +652,9 @@ local IHook = Tabs.Webhook:AddRightGroupbox("Inventory Webhook")
 
 UHook:AddInput("UnitHookUrl", { Text = "Webhook URL", Placeholder = "https://discord.com/api/webhooks/...", Default = "",
 	Callback = function(v) unitHookUrl = v end })
-UHook:AddDropdown("UnitHookRarities", { Text = "Only these rarities (empty = all)", Values = RARITIES, Default = {}, Multi = true,
+local unitHookRaritiesDD = UHook:AddDropdown("UnitHookRarities", { Text = "Only these rarities (empty = all)", Values = RARITIES, Default = {}, Multi = true,
 	Callback = function(v) unitHookRarities = v end })
+addSelAll(UHook, unitHookRaritiesDD, RARITIES, function(s) unitHookRarities = s end)
 UHook:AddSlider("UnitHookInterval", { Text = "Check every (s)", Default = 30, Min = 5, Max = 300, Rounding = 0,
 	Callback = function(v) unitHookInterval = v end })
 UHook:AddToggle("UnitHookOn", { Text = "Unit Webhook", Default = false,
