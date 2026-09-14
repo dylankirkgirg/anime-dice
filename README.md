@@ -7,10 +7,14 @@ hub loader.
 ## Tabs
 
 **Main**
-- **Auto Roll (native)** — flips the game's own `SetAutoRoll` toggle server-side.
-- **Manual Roll Loop** + speed slider — hammers `RollDice` directly. Fallback if the native toggle doesn't roll.
+- **Fast Roll** + delay slider — loops `RollDice` as fast as the server answers (0 = max).
 - **Auto Sell (native)** — flips `UpdateAutoSell` so inventory doesn't cap out.
 - **Sell Inventory / Sell Equipped** — one-shot sell buttons.
+
+**Farm**
+- **Auto Spin** · **Auto Claim Rewards** (Daily/Group/Offline/Quest) · **Auto Rebirth**.
+- **Collect Balance** · **Equip Best** buttons.
+- **Redeem Code** input + button.
 
 **Player**
 - **Movement** — WalkSpeed toggle + amount slider, Infinite Jump, NoClip, Instant ProximityPrompt.

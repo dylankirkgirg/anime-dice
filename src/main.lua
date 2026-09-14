@@ -1,8 +1,7 @@
 -- Anime Dice — Obsidian UI
--- Fires the game's own RollService / SellService remotes
--- (mapped from ReplicatedStorage.Network via Dex).
--- Loaded by loader.lua. Nothing here is hidden: it only fires
--- the same remotes the game fires when you click.
+-- Fires the game's own remotes (mapped from ReplicatedStorage.Network via Dex).
+-- Loaded by loader.lua. Nothing here is hidden: it only fires the same
+-- remotes the game fires when you click.
 
 local Players   = game:GetService("Players")
 local RS        = game:GetService("ReplicatedStorage")
@@ -32,11 +31,31 @@ local Network     = RS:WaitForChild("Network")
 local RollService = Network:WaitForChild("RollService")
 local SellService = Network:WaitForChild("SellService")
 
-local SetAutoRoll    = RollService.RE:WaitForChild("SetAutoRoll")    -- RemoteEvent   (bool)
 local RollDice       = RollService.RF:WaitForChild("RollDice")       -- RemoteFunction
-local UpdateAutoSell = SellService.RE:WaitForChild("UpdateAutoSell") -- RemoteEvent   (bool)
+local UpdateAutoSell = SellService.RE:WaitForChild("UpdateAutoSell") -- RemoteEvent (bool)
 local SellInventory  = SellService.RF:WaitForChild("SellInventory")  -- RemoteFunction
 local SellEquipped   = SellService.RF:WaitForChild("SellEquipped")   -- RemoteFunction
+
+-- optional remotes (nil if the game's layout differs — every use is guarded)
+local function getRemote(service, folder, name)
+	local ok, obj = pcall(function()
+		local s = Network:FindFirstChild(service); if not s then return nil end
+		local f = s:FindFirstChild(folder);        if not f then return nil end
+		return f:FindFirstChild(name)
+	end)
+	return ok and obj or nil
+end
+
+local SpinUse      = getRemote("SpinService",           "RE", "Use")
+local DailyClaim   = getRemote("DailyRewardService",    "RE", "Claim")
+local GroupClaim   = getRemote("GroupRewardService",    "RE", "Claim")
+local OfflineClaim = getRemote("OfflineEarningsService","RE", "Claim")
+local QuestClaim   = getRemote("QuestService",          "RE", "Claim")
+local Rebirth      = getRemote("RebirthService",        "RE", "Rebirth")
+local RedeemCode   = getRemote("MonetizationService",   "RE", "RedeemCode")
+local CollectBal   = getRemote("PlotService",           "RE", "CollectBalance")
+local EquipBest    = getRemote("PlotService",           "RE", "EquipBest")
+local claimRemotes = { DailyClaim, GroupClaim, OfflineClaim, QuestClaim }
 
 -- ============================================================
 -- Obsidian + addons
@@ -48,27 +67,34 @@ local ThemeManager = loadstring(game:HttpGet(repo .. "addons/ThemeManager.lua"))
 local SaveManager  = loadstring(game:HttpGet(repo .. "addons/SaveManager.lua"))()
 
 local Window = Library:CreateWindow({
-	Title         = "Anime Dice",
-	Footer        = "nyx build",
-	Center        = true,
-	AutoShow      = true,
-	ToggleKeybind = Enum.KeyCode.RightShift, -- show/hide
+	Title            = "Anime Dice",
+	Footer           = "nyx build",
+	Center           = true,
+	AutoShow         = true,
+	ToggleKeybind    = Enum.KeyCode.RightShift, -- show/hide
+	ShowCustomCursor = false,                   -- use native Mac/Roblox cursor, not the plus
+	ShowMobileButtons = true,                   -- on-screen open/close button
+	MobileButtonsSide = "Left",
 })
 
 local Tabs = {
 	Main   = Window:AddTab({ Name = "Main",   Icon = "dices" }),
+	Farm   = Window:AddTab({ Name = "Farm",   Icon = "coins" }),
 	Player = Window:AddTab({ Name = "Player", Icon = "user" }),
 }
 
 -- ============================================================
 -- shared state
 -- ============================================================
-local running    = true
+local running = true
 -- rolling / selling
-local manualRoll = false
-local rollDelay  = 0.2
-local autoRollOn = false
+local fastRoll   = false
+local rollDelay  = 0     -- 0 = as fast as the server answers
 local autoSellOn = false
+-- farm
+local autoSpin    = false
+local autoClaim   = false
+local autoRebirth = false
 -- player
 local antiAfk      = false
 local walkSpeedOn  = false
@@ -83,13 +109,40 @@ local flySpeed     = 60
 -- background loops / hooks (all flag-gated)
 -- ============================================================
 
--- manual roll loop
+-- fast roll: InvokeServer yields until the server answers, so no wait needed
+-- at rollDelay 0 — it's paced by round-trip, not a busy loop.
 task.spawn(function()
 	while running do
-		if manualRoll then
+		if fastRoll then
 			pcall(function() RollDice:InvokeServer() end)
+			if rollDelay > 0 then task.wait(rollDelay) else task.wait() end
+		else
+			task.wait(0.1)
 		end
-		task.wait(manualRoll and rollDelay or 0.1)
+	end
+end)
+
+-- farm loops
+task.spawn(function()
+	while running do
+		if autoSpin and SpinUse then pcall(function() SpinUse:FireServer() end) end
+		task.wait(autoSpin and 1 or 0.3)
+	end
+end)
+task.spawn(function()
+	while running do
+		if autoClaim then
+			for _, r in ipairs(claimRemotes) do
+				if r then pcall(function() r:FireServer() end) end
+			end
+		end
+		task.wait(autoClaim and 30 or 1)
+	end
+end)
+task.spawn(function()
+	while running do
+		if autoRebirth and Rebirth then pcall(function() Rebirth:FireServer() end) end
+		task.wait(autoRebirth and 2 or 0.5)
 	end
 end)
 
@@ -103,9 +156,7 @@ RunSvc.Heartbeat:Connect(function()
 		local c = char()
 		if c then
 			for _, v in ipairs(c:GetDescendants()) do
-				if v:IsA("BasePart") and v.CanCollide then
-					v.CanCollide = false
-				end
+				if v:IsA("BasePart") and v.CanCollide then v.CanCollide = false end
 			end
 		end
 	end
@@ -163,10 +214,9 @@ RunSvc.RenderStepped:Connect(function()
 	flyVel.Velocity = (dir.Magnitude > 0 and dir.Unit or Vector3.zero) * flySpeed
 end)
 
--- re-apply native toggles + fly after a respawn
+-- re-apply after a respawn
 LocalPlayer.CharacterAdded:Connect(function()
 	task.wait(1)
-	if autoRollOn then pcall(function() SetAutoRoll:FireServer(true) end) end
 	if autoSellOn then pcall(function() UpdateAutoSell:FireServer(true) end) end
 	if flying then startFly() end
 end)
@@ -186,21 +236,16 @@ end)
 local RollBox = Tabs.Main:AddLeftGroupbox("Rolling")
 local SellBox = Tabs.Main:AddRightGroupbox("Selling")
 
-RollBox:AddToggle("AutoRoll", {
-	Text = "Auto Roll (native)", Default = false,
+RollBox:AddToggle("FastRoll", {
+	Text = "Fast Roll", Default = false,
+	Tooltip = "Loops RollDice as fast as the server answers.",
 	Callback = function(v)
-		autoRollOn = v
-		pcall(function() SetAutoRoll:FireServer(v) end)
-		Library:Notify("Auto Roll " .. (v and "ON" or "OFF"))
+		fastRoll = v
+		Library:Notify("Fast Roll " .. (v and "ON" or "OFF"))
 	end,
 })
-RollBox:AddToggle("ManualRoll", {
-	Text = "Manual Roll Loop", Default = false,
-	Tooltip = "Hammers RollDice directly. Use if the native toggle doesn't roll.",
-	Callback = function(v) manualRoll = v end,
-})
-RollBox:AddSlider("RollSpeed", {
-	Text = "Roll delay (s)", Default = 0.2, Min = 0.05, Max = 1, Rounding = 2,
+RollBox:AddSlider("RollDelay", {
+	Text = "Roll delay (s) — 0 = max", Default = 0, Min = 0, Max = 1, Rounding = 2,
 	Callback = function(v) rollDelay = v end,
 })
 
@@ -225,13 +270,55 @@ SellBox:AddButton({
 })
 
 -- ============================================================
+-- FARM tab — auto spin / claim / rebirth / codes
+-- ============================================================
+local FarmBox = Tabs.Farm:AddLeftGroupbox("Auto Farm")
+local ExtraBox = Tabs.Farm:AddRightGroupbox("Extras")
+
+FarmBox:AddToggle("AutoSpin", {
+	Text = "Auto Spin", Default = false,
+	Callback = function(v) autoSpin = v end,
+})
+FarmBox:AddToggle("AutoClaim", {
+	Text = "Auto Claim Rewards", Default = false,
+	Tooltip = "Daily / Group / Offline / Quest every 30s.",
+	Callback = function(v) autoClaim = v end,
+})
+FarmBox:AddToggle("AutoRebirth", {
+	Text = "Auto Rebirth", Default = false,
+	Tooltip = "Fires Rebirth on a loop. Server rejects it until you can afford it.",
+	Callback = function(v) autoRebirth = v end,
+})
+
+ExtraBox:AddButton({
+	Text = "Collect Balance",
+	Func = function() if CollectBal then pcall(function() CollectBal:FireServer() end) end end,
+	Callback = function() if CollectBal then pcall(function() CollectBal:FireServer() end) end end,
+})
+ExtraBox:AddButton({
+	Text = "Equip Best",
+	Func = function() if EquipBest then pcall(function() EquipBest:FireServer() end) end end,
+	Callback = function() if EquipBest then pcall(function() EquipBest:FireServer() end) end end,
+})
+
+local codeText = ""
+ExtraBox:AddInput("RedeemCode", {
+	Text = "Code", Default = "", Placeholder = "enter code",
+	Callback = function(v) codeText = v end,
+})
+ExtraBox:AddButton({
+	Text = "Redeem Code",
+	Func = function() if RedeemCode and codeText ~= "" then pcall(function() RedeemCode:FireServer(codeText) end) end end,
+	Callback = function() if RedeemCode and codeText ~= "" then pcall(function() RedeemCode:FireServer(codeText) end) end end,
+})
+
+-- ============================================================
 -- PLAYER tab — movement / fly / performance / config
 -- ============================================================
 local MoveBox = Tabs.Player:AddLeftGroupbox("Movement")
 local FlyBox  = Tabs.Player:AddLeftGroupbox("Fly")
 local PerfBox = Tabs.Player:AddRightGroupbox("Performance")
 
--- movement
 MoveBox:AddToggle("WalkSpeed", {
 	Text = "WalkSpeed", Default = false,
 	Callback = function(v)
@@ -259,7 +346,6 @@ MoveBox:AddToggle("InstantPrompt", {
 	Callback = function(v) instantPmt = v end,
 })
 
--- fly
 FlyBox:AddToggle("Fly", {
 	Text = "Fly", Default = false,
 	Tooltip = "WASD + Space/Shift. Camera-relative.",
@@ -273,7 +359,6 @@ FlyBox:AddSlider("FlySpeed", {
 	Callback = function(v) flySpeed = v end,
 })
 
--- performance
 -- FPS boost: low quality, no shadows, kill visual clutter, flatten water.
 -- Reversible — toggling off restores what it changed (rejoin fully resets).
 local perf = { disabled = {}, shadows = nil, water = nil }
@@ -314,7 +399,6 @@ local function fpsBoost(on)
 end
 
 -- GPU saver: stop rendering the 3D scene entirely. UI stays up.
--- Big GPU/battery win while auto-rolling. Executor function; pcall-guarded.
 local function gpuSaver(on)
 	pcall(function() RunSvc:Set3dRenderingEnabled(not on) end)
 end
@@ -353,18 +437,16 @@ ThemeManager:ApplyToTab(Tabs.Player)        -- theme picker
 -- ============================================================
 Library:OnUnload(function()
 	running = false
-	manualRoll, walkSpeedOn, infJump, noclip, instantPmt, antiAfk = false, false, false, false, false, false
+	fastRoll, autoSpin, autoClaim, autoRebirth = false, false, false, false
+	walkSpeedOn, infJump, noclip, instantPmt, antiAfk = false, false, false, false, false
 	if flying then stopFly() end
 	flying = false
-	if autoRollOn then pcall(function() SetAutoRoll:FireServer(false) end) end
 	if autoSellOn then pcall(function() UpdateAutoSell:FireServer(false) end) end
 	fpsBoost(false)
 	gpuSaver(false)
 end)
 
--- ============================================================
 -- auto-execute: load autoload config last so saved toggles re-fire on inject.
--- ============================================================
 SaveManager:LoadAutoloadConfig()
 
 Library:Notify("Anime Dice loaded — RightShift to toggle UI")
