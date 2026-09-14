@@ -146,30 +146,36 @@ local BoostConfig, DiceMod
 pcall(function() BoostConfig = require(RS.Framework.Features.Inventory.Kinds.Boost.BoostConfig) end)
 pcall(function() DiceMod = require(RS.Framework.Features.Rolling.Dice) end)
 
-local ROMAN = { I = 1, II = 2, III = 3, IV = 4, V = 5, VI = 6, VII = 7, VIII = 8, IX = 9, X = 10, XI = 11, XII = 12 }
-local function potionType(name) return (name:gsub("%s+[IVX]+$", "")) end
-local function potionTier(name) local r = name:match("([IVX]+)$"); return r and ROMAN[r] or 0 end
+-- potion fields confirmed via probe2: entry.category / .tier / .duration
+local function boostEntry(name) return BoostConfig and BoostConfig.entries and BoostConfig.entries[name] end
+local function potionCategory(name)
+	local c; pcall(function() local e = boostEntry(name); if e then c = e.category end end)
+	return c or (name:gsub("%s+[IVX]+$", ""))
+end
+local function potionTier(name)
+	local t; pcall(function() local e = boostEntry(name); if e then t = e.tier end end)
+	return tonumber(t) or 0
+end
 local function potionDuration(name)
-	local d
-	pcall(function()
-		local e = BoostConfig and BoostConfig.entries and BoostConfig.entries[name]
-		if e then d = e.duration or e.Duration or e.time or e.Time or e.length or e.seconds
-			or (e.attributes and (e.attributes.duration or e.attributes.time)) end
-	end)
-	return tonumber(d) or 300 -- fallback if the field name differs; verify against a real entry
+	local d; pcall(function() local e = boostEntry(name); if e then d = e.duration end end)
+	return tonumber(d) or 300
 end
 
-local function dicePrice(name)
-	local p
-	pcall(function()
+-- dice fields confirmed: entry.luck / .price. Best = highest luck.
+local function diceStat(name)
+	local l, p; pcall(function()
 		local d = DiceMod and DiceMod.Get and DiceMod.Get(name)
-		if d then p = d.price or d.Price or d.cost or d.Cost end
+		if d then l = d.luck; p = d.price end
 	end)
-	return tonumber(p) or 0
+	return tonumber(l) or 0, tonumber(p) or 0
 end
-local diceRanked = {} -- DICE names, most expensive (= best) first
+local diceRanked = {} -- best (highest luck) first
 for _, n in ipairs(DICE) do diceRanked[#diceRanked + 1] = n end
-table.sort(diceRanked, function(a, b) return dicePrice(a) > dicePrice(b) end)
+table.sort(diceRanked, function(a, b)
+	local la, pa = diceStat(a); local lb, pb = diceStat(b)
+	if la ~= lb then return la > lb end
+	return pa > pb
+end)
 
 -- ============================================================
 -- Obsidian + addons
@@ -358,7 +364,7 @@ loop(5, 2, function()
 	-- one potion per type: keep only the highest tier of each family
 	local best = {}
 	for _, p in ipairs(setToList(selectedPotions)) do
-		local ty = potionType(p)
+		local ty = potionCategory(p)
 		if not best[ty] or potionTier(p) > potionTier(best[ty]) then best[ty] = p end
 	end
 	local now = os.clock()
